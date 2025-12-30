@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+dist/
+build/
+
+# Envs / uv / venv
+.venv/
+.python-version
+
+# Jupyter
+.ipynb_checkpoints/
+*.nbconvert.ipynb
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Data (evitar subir datasets grandes)
+data/raw/*
+data/processed/*
+!data/raw/README.md
+!data/processed/README.md
+
+# Outputs
+results/figures/*
+!results/figures/.gitkeep

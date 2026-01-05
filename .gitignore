@@ -28,3 +28,12 @@ data/processed/*
 # Outputs
 results/figures/*
 !results/figures/.gitkeep
+
+# ML artifacts and generated data
+artifacts/*
+data/processed/*
+
+# Keep directory structure
+!artifacts/.gitkeep
+!data/processed/.gitkeep
+

@@ -1,4 +1,6 @@
-# Python
+# -------------------------
+# Python / build artifacts
+# -------------------------
 __pycache__/
 *.py[cod]
 *.so
@@ -6,34 +8,43 @@ __pycache__/
 dist/
 build/
 
-# Envs / uv / venv
+# -------------------------
+# Environments (uv / venv)
+# -------------------------
 .venv/
 .python-version
 
+# -------------------------
 # Jupyter
+# -------------------------
 .ipynb_checkpoints/
 *.nbconvert.ipynb
 
+# -------------------------
 # OS / editor
+# -------------------------
 .DS_Store
 Thumbs.db
 .vscode/
 
-# Data (evitar subir datasets grandes)
+# -------------------------
+# Data (avoid large datasets)
+# -------------------------
 data/raw/*
 data/processed/*
 !data/raw/README.md
 !data/processed/README.md
+!data/processed/.gitkeep
 
-# Outputs
+# -------------------------
+# ML artifacts (models, outputs)
+# -------------------------
+artifacts/*
+!artifacts/.gitkeep
+
+# -------------------------
+# Results / figures
+# -------------------------
 results/figures/*
 !results/figures/.gitkeep
-
-# ML artifacts and generated data
-artifacts/*
-data/processed/*
-
-# Keep directory structure
-!artifacts/.gitkeep
-!data/processed/.gitkeep
 

@@ -15,6 +15,8 @@ import joblib
 import numpy as np
 import pandas as pd
 import streamlit as st
+import altair as alt
+
 
 st.set_page_config(page_title="Health Risk ML – DRK_YN Demo", layout="centered")
 
@@ -87,29 +89,66 @@ with st.expander("Model details", expanded=False):
 st.sidebar.header("Inputs (subset)")
 
 # NOTE: These names MUST match raw dataset column names.
-age = st.sidebar.number_input("age", min_value=0, max_value=120, value=45, step=1)
+age = st.sidebar.number_input(
+    "age (rounded to 5 years)",
+    min_value=0, max_value=120, value=45, step=5
+)
+
+height = st.sidebar.number_input(
+    "height [cm] (rounded to 5 cm)",
+    min_value=0.0, value=170.0, step=5.0
+)
+
+weight = st.sidebar.number_input(
+    "weight [kg]",
+    min_value=0.0, value=70.0, step=1.0
+)
+
 
 sex = st.sidebar.selectbox("sex", ["Male", "Female"], index=0)
 
-gamma_GTP = st.sidebar.number_input("gamma_GTP", min_value=0.0, value=30.0, step=1.0)
-SGOT_ALT = st.sidebar.number_input("SGOT_ALT", min_value=0.0, value=20.0, step=1.0)
-SGOT_AST = st.sidebar.number_input("SGOT_AST", min_value=0.0, value=20.0, step=1.0)
+gamma_GTP = st.sidebar.number_input(
+    "gamma-GTP [IU/L]",
+    min_value=0.0, value=30.0, step=1.0
+)
 
-HDL_chole = st.sidebar.number_input("HDL_chole", min_value=0.0, value=55.0, step=1.0)
-LDL_chole = st.sidebar.number_input("LDL_chole", min_value=0.0, value=120.0, step=1.0)
-triglyceride = st.sidebar.number_input("triglyceride", min_value=0.0, value=110.0, step=1.0)
+SGOT_AST = st.sidebar.number_input(
+    "SGOT(AST) [IU/L]",
+    min_value=0.0, value=20.0, step=1.0
+)
 
-height = st.sidebar.number_input("height", min_value=0.0, value=170.0, step=1.0)
-weight = st.sidebar.number_input("weight", min_value=0.0, value=70.0, step=1.0)
+SGOT_ALT = st.sidebar.number_input(
+    "SGOT(ALT) [IU/L]",
+    min_value=0.0, value=20.0, step=1.0
+)
+
+HDL_chole = st.sidebar.number_input(
+    "HDL cholesterol [mg/dL]",
+    min_value=0.0, value=55.0, step=1.0
+)
+
+LDL_chole = st.sidebar.number_input(
+    "LDL cholesterol [mg/dL]",
+    min_value=0.0, value=120.0, step=1.0
+)
+
+triglyceride = st.sidebar.number_input(
+    "triglyceride [mg/dL]",
+    min_value=0.0, value=110.0, step=1.0
+)
+
+
 waistline = st.sidebar.number_input("waistline", min_value=0.0, value=80.0, step=1.0)
 
-# Depending on your dataset, this might be numeric-coded. Keep as string only if your training column is object.
-SMK_stat_type_cd = st.sidebar.selectbox(
-    "SMK_stat_type_cd",
-    ["1", "2", "3"],
+smk_label = st.sidebar.selectbox(
+    "smoking status",
+    ["Never smoker", "Former smoker", "Current smoker"],
     index=0,
-    help="Smoking status code (as in the dataset).",
+    help="Smoking status as defined in the original dataset.",
 )
+
+SMK_stat_type_cd = {"Never smoker": 1, "Former smoker": 2, "Current smoker": 3}[smk_label]
+
 
 user_values = {
     "age": age,
@@ -152,12 +191,52 @@ st.divider()
 
 # --- Global feature importance panel (from Notebook 05 output) ---
 st.subheader("Global feature importance (Permutation)")
+
 imp_df = load_importance(IMPORTANCE_PATH)
 
 if imp_df is None:
     st.warning(f"Importance CSV not found at: {IMPORTANCE_PATH}")
 else:
     top_n = 10
-    st.caption(f"Top {top_n} features by mean decrease in F1 when permuted.")
-    st.dataframe(imp_df.head(top_n), width="stretch")
 
+    # Top N ordered descending
+    top = (
+        imp_df.sort_values("importance_mean", ascending=False)
+        .head(top_n)
+        .copy()
+    )
+
+    st.caption(f"Top {top_n} features by mean decrease in F1 when permuted.")
+
+    # Altair chart with explicit sort order
+    order = top["feature"].tolist()  # already in descending order
+
+    chart = (
+        alt.Chart(top)
+        .mark_bar()
+        .encode(
+            x=alt.X("importance_mean:Q", title="Mean ΔF1 (permutation)"),
+            y=alt.Y("feature:N", sort=order, title="Feature"),
+            tooltip=[
+                alt.Tooltip("feature:N"),
+                alt.Tooltip("importance_mean:Q", format=".4f", title="mean"),
+                alt.Tooltip("importance_std:Q", format=".4f", title="std"),
+            ],
+        )
+        .properties(height=320)
+    )
+
+    st.altair_chart(chart, use_container_width=True)
+
+    with st.expander("Show importance table (mean ± std)", expanded=False):
+        top_table = top.copy()
+        top_table["mean±std"] = (
+            top_table["importance_mean"].round(4).astype(str)
+            + " ± "
+            + top_table["importance_std"].round(4).astype(str)
+        )
+        st.dataframe(
+            top_table[["feature", "importance_mean", "importance_std", "mean±std"]],
+            width="stretch",
+            hide_index=True,
+        )

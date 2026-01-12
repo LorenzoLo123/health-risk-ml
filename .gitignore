@@ -43,10 +43,15 @@ artifacts/*
 !artifacts/.gitkeep
 !artifacts/HistGradientBoosting_tuned.joblib
 
-
 # -------------------------
 # Results / figures
 # -------------------------
 results/figures/*
 !results/figures/.gitkeep
 
+# -------------------------
+# Streamlit
+# -------------------------
+.streamlit/secrets.toml
+.streamlit/cache/
+.streamlit/.cache/
